@@ -1,4 +1,4 @@
-import { get, isEqual, isFunction, isString, sortBy, uniq } from 'lodash-es';
+import { get, isEqual, isFunction, isString, sortBy, uniq } from 'lodash';
 
 import { getModuleName, safelyRegisterModule } from './utils';
 
