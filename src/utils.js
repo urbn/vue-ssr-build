@@ -22,3 +22,27 @@ export function safelyRegisterModule(store, name, vuexModule, logger) {
         });
     }
 }
+
+/* eslint-disable max-params */
+/**
+ * Return a consistent structure for the object passed to fetchData and related hooks
+ *
+ * @param   {object} ssrContext Vue SSr context
+ * @param   {object} app        Vue app
+ * @param   {object} router     Vue router instance
+ * @param   {object} store      Vuex instance
+ * @param   {object} to         Destination route
+ * @param   {object} from       Source route
+ * @returns {object}            Object to be passed to middlewares and fetchData
+ */
+export function getFetchDataArgs(ssrContext, app, router, store, to, from) {
+    return {
+        ssrContext,
+        app,
+        from,
+        route: to,
+        router,
+        store,
+    };
+}
+/* eslint-enable max-params */

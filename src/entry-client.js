@@ -1,6 +1,6 @@
-import { get, isEqual, isFunction, isString, sortBy, uniq } from 'lodash';
+import { get, isEqual, isFunction, sortBy, uniq } from 'lodash';
 
-import { getModuleName, safelyRegisterModule } from './utils';
+import { getModuleName, safelyRegisterModule, getFetchDataArgs } from './utils';
 
 /**
  * Determine if we should run our middlewares and fetchData for a given routing
@@ -24,11 +24,10 @@ import { getModuleName, safelyRegisterModule } from './utils';
  *
  * @param   {object} c             Vue component definition object for destination route
  * @param   {object} fetchDataArgs Context argument passed to fetchData
- * @param   {object} spruDefaults  Defaults from initializeClient
  * @returns {boolean}              True if we should process this route update through the
  *                                 fetchData/middleware pipeline
  */
-function shouldProcessRouteUpdate(c, fetchDataArgs, spruDefaults) {
+function shouldProcessRouteUpdate(c, fetchDataArgs) {
     const { from, route } = fetchDataArgs;
 
     // Always process route updates when going between routing table entries
@@ -44,7 +43,9 @@ function shouldProcessRouteUpdate(c, fetchDataArgs, spruDefaults) {
     // Otherwise, use the defaults and override with any component opts.  Shallow
     // clone here so we don't persist anything from route to route
     const { path, query, hash } = {
-        ...spruDefaults,
+        path: true,
+        query: false,
+        hash: false,
         ...c.shouldProcessRouteUpdate,
     };
 
@@ -55,12 +56,8 @@ function shouldProcessRouteUpdate(c, fetchDataArgs, spruDefaults) {
     );
 }
 
-// To be toggled on via client options if desired
-let enablePerfMarks = false;
-
 const PERF_PREFIX = 'urbnperf';
-const perfEnabled = () => (
-    enablePerfMarks &&
+const perfAvailable = () => (
     window.performance !== null &&
     isFunction(window.performance.getEntriesByType)
 );
@@ -70,9 +67,8 @@ const getCurrentPerfMark = () => window.performance.getEntriesByType('mark')
     .find(m => m.name.startsWith(PERF_PREFIX) && m.name.endsWith('start'));
 
 function perfInit(to, from) {
-    if (!perfEnabled()) {
-        return;
-    }
+    // No need to check perfAvailable here since this is only called from within
+    // useFetchDataClient which does it's own check
 
     // Always clear any prior measurements before starting a new one
     window.performance.getEntriesByType('mark')
@@ -91,7 +87,8 @@ function perfInit(to, from) {
 // Issue a performance.measure call for the given name using the most recent
 // 'start' mark
 export function perfMeasure(name) {
-    if (!perfEnabled()) {
+    // Guard internally since this can be called externally
+    if (!perfAvailable()) {
         return false;
     }
 
@@ -114,130 +111,108 @@ export function perfMeasure(name) {
     return true;
 }
 
-export default function initializeClient(createApp, clientOpts) {
-    const opts = {
-        appSelector: '#app',
-        hmr: true,
-        initialState: null,
-        initialStateMetaTag: 'initial-state',
-        vuexModules: true,
-        middleware: () => Promise.resolve(),
-        globalFetchData: () => Promise.resolve(),
-        postMiddleware: () => Promise.resolve(),
-        logger: console,
-        enablePerfMarks: false,
-        // By default, only run fetchData middlewares on path changes
-        shouldProcessRouteUpdateDefaults: {
-            path: true,
-            query: false,
-            hash: false,
-        },
-        ...clientOpts,
-    };
+/**
+ * Register/Unregister any dynamic Vuex modules during client-side routing operations.
+ * Registering the store modules as part of the component allows the module to be bundled
+ * with the async-loaded component and not in the initial root store bundle
+ *
+ * @param   {object} app Destination route object
+ * @param   {object} router Destination route object
+ * @param   {object} store  Vuex Store instance
+ * @param   {object} logger Logger instance
+ * @returns {undefined}     No return value
+ */
+export function useRouteVuexModulesClient(app, router, store, logger) {
+    const queuedRemovalModules = [];
 
-    // Store off for closure scope usage
-    enablePerfMarks = opts.enablePerfMarks;
-
-    const { shouldProcessRouteUpdateDefaults: spruDefaults } = opts;
-    let { initialState } = opts;
-
-    if (isString(opts.initialStateMetaTag)) {
-        if (initialState) {
-            opts.logger.error('initialState and initialStateMetaTag should not be used together');
-        }
+    // Before routing, register any dynamic Vuex modules for new components
+    router.beforeResolve((to, from, next) => {
         try {
-            const meta = document.querySelector(`meta[name="${opts.initialStateMetaTag}"]`);
-            initialState = JSON.parse(meta.getAttribute('content'));
-        } catch (e) {
-            opts.logger.error(`Error parsing meta tag content: ${opts.initialStateMetaTag}`);
-        }
-    }
+            const fetchDataArgs = getFetchDataArgs(null, app, router, store, to, from);
+            router.getMatchedComponents(to)
+                .filter(c => 'vuex' in c)
+                .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs))
+                .flatMap(c => c.vuex)
+                .forEach((vuexModuleDef) => {
+                    const name = getModuleName(vuexModuleDef, to);
+                    safelyRegisterModule(store, name, vuexModuleDef.module, logger);
+                });
 
-    const { app, router, store } = createApp({
-        initialState,
+            next();
+        } catch (e) {
+            logger.error('Caught error during beforeResolve', e);
+            // Prevent routing
+            next(e);
+        }
     });
 
-    if (opts.vuexModules) {
-        const queuedRemovalModules = [];
+    // After routing, unregister any dynamic Vuex modules from prior components
+    router.afterEach((to, from) => {
+        const fetchDataArgs = getFetchDataArgs(null, app, router, store, to, from);
+        const shouldProcess = router.getMatchedComponents(to)
+            .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs))
+            .length > 0;
 
-        // Before routing, register any dynamic Vuex modules for new components
-        router.beforeResolve((to, from, next) => {
-            try {
-                const fetchDataArgs = { app, route: to, router, store, from };
-                router.getMatchedComponents(to)
-                    .filter(c => 'vuex' in c)
-                    .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs, spruDefaults))
-                    .flatMap(c => c.vuex)
-                    .forEach((vuexModuleDef) => {
-                        const name = getModuleName(vuexModuleDef, to);
-                        safelyRegisterModule(store, name, vuexModuleDef.module, opts.logger);
-                    });
+        if (!shouldProcess) {
+            return;
+        }
 
-                next();
-            } catch (e) {
-                opts.logger.error('Caught error during beforeResolve', e);
-                // Prevent routing
-                next(e || false);
+        // Determine "active" modules from the outgoing and incoming routes
+        const toModuleNames = router.getMatchedComponents(to)
+            .filter(c => 'vuex' in c)
+            .flatMap(c => c.vuex)
+            .map(vuexModuleDef => getModuleName(vuexModuleDef, to));
+        const fromModuleNames = router.getMatchedComponents(from)
+            .filter(c => 'vuex' in c)
+            .flatMap(c => c.vuex)
+            .map(vuexModuleDef => getModuleName(vuexModuleDef, from));
+
+        // Unregister any modules we queued for removal on the previous route
+        const requeueModules = [];
+        while (queuedRemovalModules.length > 0) {
+            // Unregister from the end of the queue, so we go upwards from child
+            // components to parent components in nested route scenarios
+            const name = queuedRemovalModules.pop();
+            const nameArr = name.split('/');
+            /* istanbul ignore else */
+            if ([...toModuleNames, ...fromModuleNames].includes(name)) {
+                // Can't remove yet - still actively used.  Queue up for the next route
+                logger.info(`Skipping deregistration for active dynamic Vuex module: ${name}`);
+                requeueModules.push(name);
+            } else if (store.hasModule(nameArr)) {
+                logger.info(`Unregistering dynamic Vuex module: ${name}`);
+                store.unregisterModule(nameArr);
+            } else {
+                logger.info(`No existing dynamic module to unregister: ${name}`);
             }
-        });
+        }
 
-        // After routing, unregister any dynamic Vuex modules from prior components
-        router.afterEach((to, from) => {
-            const fetchDataArgs = { app, route: to, router, store, from };
-            const shouldProcess = router.getMatchedComponents(to)
-                .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs, spruDefaults))
-                .length > 0;
+        // Queue up the prior route modules for removal on the next route
+        const nextRouteRemovals = uniq([...requeueModules, ...fromModuleNames]);
+        // Sort by depth, so that we remove deeper modules first using .pop()
+        const sortedRouteRemovals = sortBy(nextRouteRemovals, [m => m.split('/').length]);
+        queuedRemovalModules.push(...sortedRouteRemovals);
+    });
+}
 
-            if (!shouldProcess) {
-                return;
-            }
-
-            // Determine "active" modules from the outgoing and incoming routes
-            const toModuleNames = router.getMatchedComponents(to)
-                .filter(c => 'vuex' in c)
-                .flatMap(c => c.vuex)
-                .map(vuexModuleDef => getModuleName(vuexModuleDef, to));
-            const fromModuleNames = router.getMatchedComponents(from)
-                .filter(c => 'vuex' in c)
-                .flatMap(c => c.vuex)
-                .map(vuexModuleDef => getModuleName(vuexModuleDef, from));
-
-            // Unregister any modules we queued for removal on the previous route
-            const requeueModules = [];
-            const { logger } = opts;
-            while (queuedRemovalModules.length > 0) {
-                // Unregister from the end of the queue, so we go upwards from child
-                // components to parent components in nested route scenarios
-                const name = queuedRemovalModules.pop();
-                const nameArr = name.split('/');
-                if ([...toModuleNames, ...fromModuleNames].includes(name)) {
-                    // Can't remove yet - still actively used.  Queue up for the next route
-                    logger.info(`Skipping deregistration for active dynamic Vuex module: ${name}`);
-                    requeueModules.push(name);
-                } else if (store.hasModule(nameArr)) {
-                    logger.info(`Unregistering dynamic Vuex module: ${name}`);
-                    store.unregisterModule(nameArr);
-                } else {
-                    logger.info(`No existing dynamic module to unregister: ${name}`);
-                }
-            }
-
-            // Queue up the prior route modules for removal on the next route
-            const nextRouteRemovals = uniq([...requeueModules, ...fromModuleNames]);
-            // Sort by depth, so that we remove deeper modules first using .pop()
-            const sortedRouteRemovals = sortBy(nextRouteRemovals, [m => m.split('/').length]);
-            queuedRemovalModules.push(...sortedRouteRemovals);
-        });
-    }
-
-    // Register the fetchData hook once the router is ready since we don't want to
-    // re-run fetchData for the SSR'd component
-    router.onReady(() => {
-
+/**
+ * Wire up client-side fetchData/globalFetchData execution for current route components
+ *
+ * @param   {object} app                  App instance
+ * @param   {object} router               Router instance
+ * @param   {object} store                Vuex store instance
+ * @param   {object} logger               Logger instance
+ * @param   {object} opts                 Additional options
+ * @param   {object} opts.middleware      Function to execute before fetchData
+ * @param   {object} opts.postMiddleware  Function to execute after fetchData
+ * @returns {undefined}         No return value
+ */
+export function useFetchDataClient(app, router, store, logger, opts) {
+    if (perfAvailable()) {
         router.beforeEach((to, from, next) => {
-            const fetchDataArgs = { app, route: to, router, store, from };
+            const fetchDataArgs = getFetchDataArgs(null, app, router, store, to, from);
             const components = router.getMatchedComponents(to)
-                .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs, spruDefaults));
+                .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs));
 
             // Only measure performance for non-ignored route changed
             if (components.length > 0) {
@@ -246,63 +221,55 @@ export default function initializeClient(createApp, clientOpts) {
 
             next();
         });
+    }
 
-        // Prior to resolving a route, execute any component fetchData methods.
-        // Approach based on:
-        //   https://ssr.vuejs.org/en/data.html#client-data-fetching
-        router.beforeResolve((to, from, next) => {
-            const routeUpdateStr = `${from.fullPath} -> ${to.fullPath}`;
-            const fetchDataArgs = { app, route: to, router, store, from };
-            // Call fetchData for any routes that define it, otherwise resolve with
-            // null to allow routing via next(null)
-            const fetchData = c => (isFunction(c.fetchData) ? c.fetchData(fetchDataArgs) : null);
+    // Prior to resolving a route, execute any component fetchData methods.
+    // Approach based on:
+    //   https://ssr.vuejs.org/en/data.html#client-data-fetching
+    router.beforeResolve(async (to, from, next) => {
+        const routeUpdateStr = `${from.fullPath} -> ${to.fullPath}`;
+        const fetchDataArgs = getFetchDataArgs(null, app, router, store, to, from);
+        try {
             const components = router.getMatchedComponents(to)
-                .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs, spruDefaults));
+                .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs));
 
             // Short circuit if none of our components need to process the route update
             if (components.length === 0) {
-                opts.logger.debug(`Ignoring route update ${routeUpdateStr}`);
-                return next();
+                logger.debug(`Ignoring route update ${routeUpdateStr}`);
+                next();
+                return;
             }
 
-            opts.logger.debug(`Running middleware/fetchData for route update ${routeUpdateStr}`);
-            return Promise.resolve()
-                .then(() => perfMeasure('beforeResolve'))
-                .then(() => opts.middleware(to, from, store, app))
-                .then(() => perfMeasure('middleware-complete'))
-                .then(() => Promise.all([
-                    opts.globalFetchData(fetchDataArgs),
-                    ...components.map(fetchData),
-                ]))
-                // Proxy results through the chain
-                .then((results) => {
-                    perfMeasure('fetchData-complete');
-                    return opts.postMiddleware(to, from, store, app)
-                        // Call next with the first non-null resolved value from fetchData
-                        .then(() => next(results.find(r => r != null)));
-                })
-                .catch((e) => {
-                    opts.logger.warn('Error fetching component data, preventing routing', e);
-                    if (e instanceof Error) {
-                        next(e);
-                    } else if (typeof e === 'string') {
-                        next(new Error(e));
-                    } else {
-                        try {
-                            next(new Error(JSON.stringify(e)));
-                        } catch (e2) {
-                            next(new Error('Unknown routing error'));
-                        }
-                    }
-                });
-        });
-
-        app.$mount(opts.appSelector);
+            logger.debug(`Running middleware/fetchData for route update ${routeUpdateStr}`);
+            perfMeasure('beforeResolve');
+            if (opts && opts.middleware) {
+                await opts.middleware(fetchDataArgs);
+            }
+            perfMeasure('middleware-complete');
+            const results = await Promise.all([
+                opts && opts.globalFetchData && opts.globalFetchData(fetchDataArgs),
+                ...components.map(c => c.fetchData && c.fetchData(fetchDataArgs)),
+            ]);
+            perfMeasure('fetchData-complete');
+            if (opts && opts.postMiddleware) {
+                await opts.postMiddleware(fetchDataArgs);
+            }
+            // Call next with the first non-null resolved value from fetchData
+            next(results.find(r => r != null));
+        } catch (e) {
+            logger.warn('Error fetching component data, preventing routing', e);
+            if (e instanceof Error) {
+                next(e);
+            } else if (typeof e === 'string') {
+                next(new Error(e));
+            } else {
+                try {
+                    next(new Error(JSON.stringify(e)));
+                } catch (e2) {
+                    // istanbul ignore next
+                    next(new Error('Unknown routing error'));
+                }
+            }
+        }
     });
-
-    if (opts.hmr && module.hot) {
-        module.hot.accept();
-    }
-
-    return { app, router, store };
 }
