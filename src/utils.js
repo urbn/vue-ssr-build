@@ -23,6 +23,16 @@ export function safelyRegisterModule(store, name, vuexModule, logger) {
     }
 }
 
+/**
+ * Return an array of matched components for the given route
+ *
+ * @param   {Object} route VueRouter route instance
+ * @returns {Object[]}    Array of matched components
+ */
+export function getMatchedComponents(route) {
+    return route.matched.flatMap(r => Object.values(r.components));
+}
+
 /* eslint-disable max-params */
 /**
  * Return a consistent structure for the object passed to fetchData and related hooks

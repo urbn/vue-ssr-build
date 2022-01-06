@@ -15,12 +15,18 @@ describe('entry-server utils', () => {
                 },
             };
             const router = {
-                getMatchedComponents: () => [{
-                    vuex: {
-                        moduleName: 'test',
-                        module: testModule,
+                currentRoute: {
+                    value: {
+                        matched: [{
+                            components: [{
+                                vuex: {
+                                    moduleName: 'test',
+                                    module: testModule,
+                                },
+                            }],
+                        }],
                     },
-                }],
+                },
             };
             const store = {
                 hasModule: () => false,
@@ -34,11 +40,17 @@ describe('entry-server utils', () => {
 
         it('should ignore modules which do not specify a vuex key', () => {
             const router = {
-                getMatchedComponents: () => [{
-                    name: '1',
-                }, {
-                    name: '2',
-                }],
+                currentRoute: {
+                    value: {
+                        matched: [{
+                            components: [{
+                                name: '1',
+                            }, {
+                                name: '1',
+                            }],
+                        }],
+                    },
+                },
             };
             const store = {
                 hasModule: jest.fn(),
@@ -63,19 +75,25 @@ describe('entry-server utils', () => {
                 },
             };
             const router = {
-                getMatchedComponents: () => [{
-                    vuex: {
-                        moduleName: 'test1',
-                        module: testModule1,
+                currentRoute: {
+                    value: {
+                        matched: [{
+                            components: [{
+                                vuex: {
+                                    moduleName: 'test1',
+                                    module: testModule1,
+                                },
+                            }, {
+                                // No vuex module on this component
+                            }, {
+                                vuex: {
+                                    moduleName: 'test2',
+                                    module: testModule2,
+                                },
+                            }],
+                        }],
                     },
-                }, {
-                    // No vuex module on this component
-                }, {
-                    vuex: {
-                        moduleName: 'test2',
-                        module: testModule2,
-                    },
-                }],
+                },
             };
             const store = {
                 hasModule: () => false,
@@ -98,12 +116,18 @@ describe('entry-server utils', () => {
                 },
             };
             const router = {
-                getMatchedComponents: () => [{
-                    vuex: {
-                        moduleName: 'test',
-                        module: testModule,
+                currentRoute: {
+                    value: {
+                        matched: [{
+                            components: [{
+                                vuex: {
+                                    moduleName: 'test',
+                                    module: testModule,
+                                },
+                            }],
+                        }],
                     },
-                }],
+                },
             };
             const store = {
                 hasModule: () => false,
@@ -128,12 +152,18 @@ describe('entry-server utils', () => {
                 },
             };
             const router = {
-                getMatchedComponents: () => [{
-                    vuex: {
-                        moduleName: 'test',
-                        module: testModule,
+                currentRoute: {
+                    value: {
+                        matched: [{
+                            components: [{
+                                vuex: {
+                                    moduleName: 'test',
+                                    module: testModule,
+                                },
+                            }],
+                        }],
                     },
-                }],
+                },
             };
             const store = {
                 hasModule: () => jest.fn(name => isEqual(name, ['test'])),
@@ -157,16 +187,20 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    params: {
-                        slug: 'foo',
+                    value: {
+                        params: {
+                            slug: 'foo',
+                        },
+                        matched: [{
+                            components: [{
+                                vuex: {
+                                    moduleName: ({ $route }) => `test-${$route.params.slug}`,
+                                    module: testModule,
+                                },
+                            }],
+                        }],
                     },
                 },
-                getMatchedComponents: () => [{
-                    vuex: {
-                        moduleName: ({ $route }) => `test-${$route.params.slug}`,
-                        module: testModule,
-                    },
-                }],
             };
             const store = {
                 hasModule: () => false,
@@ -187,16 +221,20 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    params: {
-                        slug: 'foo',
+                    value: {
+                        params: {
+                            slug: 'foo',
+                        },
+                        matched: [{
+                            components: [{
+                                vuex: {
+                                    moduleName: 'foo/bar/baz',
+                                    module: testModule,
+                                },
+                            }],
+                        }],
                     },
                 },
-                getMatchedComponents: () => [{
-                    vuex: {
-                        moduleName: 'foo/bar/baz',
-                        module: testModule,
-                    },
-                }],
             };
             const store = {
                 hasModule: () => false,
@@ -219,8 +257,14 @@ describe('entry-server utils', () => {
                 fetchData: jest.fn(),
             };
             const router = {
-                currentRoute: { path: '/' },
-                getMatchedComponents: () => [component],
+                currentRoute: {
+                    value: {
+                        path: '/',
+                        matched: [{
+                            components: [component],
+                        }],
+                    },
+                },
             };
             const store = { state: {} };
             await useFetchDataServer(ssrContext, app, router, store);
@@ -229,7 +273,7 @@ describe('entry-server utils', () => {
                 app,
                 router,
                 store,
-                route: router.currentRoute,
+                route: router.currentRoute.value,
             });
         });
 
@@ -246,8 +290,18 @@ describe('entry-server utils', () => {
                 fetchData: jest.fn(),
             };
             const router = {
-                currentRoute: { path: '/' },
-                getMatchedComponents: () => [component1, component2, component3],
+                currentRoute: {
+                    value: {
+                        path: '/',
+                        matched: [{
+                            components: [component1],
+                        }, {
+                            components: [component2],
+                        }, {
+                            components: [component3],
+                        }],
+                    },
+                },
             };
             const store = { state: {} };
             await useFetchDataServer(ssrContext, app, router, store);
@@ -256,7 +310,7 @@ describe('entry-server utils', () => {
                 app,
                 router,
                 store,
-                route: router.currentRoute,
+                route: router.currentRoute.value,
             };
             expect(component1.fetchData).toHaveBeenCalledWith(expectedArg);
             expect(component3.fetchData).toHaveBeenCalledWith(expectedArg);
@@ -269,8 +323,14 @@ describe('entry-server utils', () => {
                 fetchData: jest.fn(),
             };
             const router = {
-                currentRoute: { path: '/' },
-                getMatchedComponents: () => [component],
+                currentRoute: {
+                    value: {
+                        path: '/',
+                        matched: [{
+                            components: [component],
+                        }],
+                    },
+                },
             };
             const store = { state: {} };
             const globalFetchData = jest.fn();
@@ -286,7 +346,7 @@ describe('entry-server utils', () => {
                 app,
                 router,
                 store,
-                route: router.currentRoute,
+                route: router.currentRoute.value,
             };
             expect(middleware).toHaveBeenCalledWith(expectedArg);
             expect(globalFetchData).toHaveBeenCalledWith(expectedArg);
@@ -301,8 +361,14 @@ describe('entry-server utils', () => {
                 fetchData: jest.fn(() => Promise.reject('error')),
             };
             const router = {
-                currentRoute: { path: '/' },
-                getMatchedComponents: () => [component],
+                currentRoute: {
+                    value: {
+                        path: '/',
+                        matched: [{
+                            components: [component],
+                        }],
+                    },
+                },
             };
             const store = { state: {} };
             expect.assertions(1);

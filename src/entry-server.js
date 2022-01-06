@@ -1,4 +1,9 @@
-import { getModuleName, safelyRegisterModule, getFetchDataArgs } from './utils';
+import {
+    getMatchedComponents,
+    getModuleName,
+    safelyRegisterModule,
+    getFetchDataArgs,
+} from './utils';
 
 // Server side data loading approach based on:
 // https://ssr.vuejs.org/en/data.html#client-data-fetching
@@ -15,11 +20,11 @@ import { getModuleName, safelyRegisterModule, getFetchDataArgs } from './utils';
  * @returns {undefined}     No return value
  */
 export function useRouteVuexModulesServer(router, store, logger) {
-    router.getMatchedComponents()
+    getMatchedComponents(router.currentRoute.value)
         .filter(c => 'vuex' in c)
         .flatMap(c => c.vuex)
         .forEach((vuexModuleDef) => {
-            const name = getModuleName(vuexModuleDef, router.currentRoute);
+            const name = getModuleName(vuexModuleDef, router.currentRoute.value);
             safelyRegisterModule(store, name, vuexModuleDef.module, logger);
         });
 }
@@ -37,9 +42,9 @@ export function useRouteVuexModulesServer(router, store, logger) {
  * @returns {undefined}         No return value
  */
 export async function useFetchDataServer(ssrContext, app, router, store, opts) {
-    const route = router.currentRoute;
+    const route = router.currentRoute.value;
     const fetchDataArgs = getFetchDataArgs(ssrContext, app, router, store, route);
-    const components = router.getMatchedComponents(route);
+    const components = getMatchedComponents(route);
     if (opts && opts.middleware) {
         await opts.middleware(fetchDataArgs);
     }

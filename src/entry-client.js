@@ -1,6 +1,11 @@
 import { get, isEqual, isFunction, sortBy, uniq } from 'lodash';
 
-import { getModuleName, safelyRegisterModule, getFetchDataArgs } from './utils';
+import {
+    getMatchedComponents,
+    getModuleName,
+    safelyRegisterModule,
+    getFetchDataArgs,
+} from './utils';
 
 /**
  * Determine if we should run our middlewares and fetchData for a given routing
@@ -129,7 +134,7 @@ export function useRouteVuexModulesClient(app, router, store, logger) {
     router.beforeResolve((to, from, next) => {
         try {
             const fetchDataArgs = getFetchDataArgs(null, app, router, store, to, from);
-            router.getMatchedComponents(to)
+            getMatchedComponents(to)
                 .filter(c => 'vuex' in c)
                 .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs))
                 .flatMap(c => c.vuex)
@@ -149,7 +154,7 @@ export function useRouteVuexModulesClient(app, router, store, logger) {
     // After routing, unregister any dynamic Vuex modules from prior components
     router.afterEach((to, from) => {
         const fetchDataArgs = getFetchDataArgs(null, app, router, store, to, from);
-        const shouldProcess = router.getMatchedComponents(to)
+        const shouldProcess = getMatchedComponents(to)
             .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs))
             .length > 0;
 
@@ -158,11 +163,11 @@ export function useRouteVuexModulesClient(app, router, store, logger) {
         }
 
         // Determine "active" modules from the outgoing and incoming routes
-        const toModuleNames = router.getMatchedComponents(to)
+        const toModuleNames = getMatchedComponents(to)
             .filter(c => 'vuex' in c)
             .flatMap(c => c.vuex)
             .map(vuexModuleDef => getModuleName(vuexModuleDef, to));
-        const fromModuleNames = router.getMatchedComponents(from)
+        const fromModuleNames = getMatchedComponents(from)
             .filter(c => 'vuex' in c)
             .flatMap(c => c.vuex)
             .map(vuexModuleDef => getModuleName(vuexModuleDef, from));
@@ -211,7 +216,7 @@ export function useFetchDataClient(app, router, store, logger, opts) {
     if (perfAvailable()) {
         router.beforeEach((to, from, next) => {
             const fetchDataArgs = getFetchDataArgs(null, app, router, store, to, from);
-            const components = router.getMatchedComponents(to)
+            const components = getMatchedComponents(to)
                 .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs));
 
             // Only measure performance for non-ignored route changed
@@ -230,7 +235,7 @@ export function useFetchDataClient(app, router, store, logger, opts) {
         const routeUpdateStr = `${from.fullPath} -> ${to.fullPath}`;
         const fetchDataArgs = getFetchDataArgs(null, app, router, store, to, from);
         try {
-            const components = router.getMatchedComponents(to)
+            const components = getMatchedComponents(to)
                 .filter(c => shouldProcessRouteUpdate(c, fetchDataArgs));
 
             // Short circuit if none of our components need to process the route update

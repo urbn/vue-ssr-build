@@ -67,17 +67,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    if (route.path === '/test2') {
-                        return [{
-                            vuex: {
-                                moduleName: 'test2',
-                                module: testModule,
-                            },
-                        }];
-                    }
-                    return [];
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -89,7 +78,19 @@ describe('entry-client utils', () => {
             expect(store.registerModule).not.toHaveBeenCalled();
 
             const from = { path: '/test1' };
-            const to = { path: '/test2' };
+            const to = {
+                path: '/test2',
+                matched: [{
+                    components: {
+                        test2: {
+                            vuex: {
+                                moduleName: 'test2',
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
             const { promise, resolve } = getResolvablePromise();
             beforeResolveFn(to, from, resolve);
             const nextParam = await promise;
@@ -107,12 +108,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    if (route.path === '/test2') {
-                        return [{ name: '1' }, { name: '2' }];
-                    }
-                    return [];
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -124,7 +119,14 @@ describe('entry-client utils', () => {
             expect(store.registerModule).not.toHaveBeenCalled();
 
             const from = { path: '/test1' };
-            const to = { path: '/test2' };
+            const to = {
+                path: '/test2',
+                matched: [{
+                    components: {
+                        test2: {},
+                    },
+                }],
+            };
             const { promise, resolve } = getResolvablePromise();
             beforeResolveFn(to, from, resolve);
             const nextParam = await promise;
@@ -152,24 +154,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    if (route.path === '/test/child') {
-                        return [{
-                            vuex: {
-                                moduleName: 'test',
-                                module: testModule1,
-                            },
-                        }, {
-                            // No vuex module on this component
-                        }, {
-                            vuex: {
-                                moduleName: 'child',
-                                module: testModule2,
-                            },
-                        }];
-                    }
-                    return [];
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -181,7 +165,29 @@ describe('entry-client utils', () => {
             expect(store.registerModule).not.toHaveBeenCalled();
 
             const from = { path: '/test' };
-            const to = { path: '/test/child' };
+            const to = {
+                path: '/test/child',
+                matched: [{
+                    components: {
+                        a: {
+                            vuex: {
+                                moduleName: 'test',
+                                module: testModule1,
+                            },
+                        },
+                        b: {
+                            // No vuex module on this component
+                        },
+                        c: {
+                            vuex: {
+                                moduleName: 'child',
+                                module: testModule2,
+                            },
+                        },
+                    },
+                }],
+            };
+
             const { promise, resolve } = getResolvablePromise();
             beforeResolveFn(to, from, resolve);
             const nextParam = await promise;
@@ -208,17 +214,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    if (route.path === '/test2') {
-                        return [{
-                            vuex: {
-                                moduleName: 'test2',
-                                module: testModule,
-                            },
-                        }];
-                    }
-                    return [];
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -235,7 +230,19 @@ describe('entry-client utils', () => {
             expect(store.registerModule).not.toHaveBeenCalled();
 
             const from = { path: '/test1' };
-            const to = { path: '/test2' };
+            const to = {
+                path: '/test2',
+                matched: [{
+                    components: {
+                        test2: {
+                            vuex: {
+                                moduleName: 'test2',
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
             const { promise, resolve } = getResolvablePromise();
             beforeResolveFn(to, from, resolve);
             const nextParam = await promise;
@@ -259,17 +266,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    if (route.path === '/test2') {
-                        return [{
-                            vuex: {
-                                moduleName: 'test2',
-                                module: testModule,
-                            },
-                        }];
-                    }
-                    return [];
-                },
             };
             const store = {
                 hasModule: name => isEqual(name, ['test2']),
@@ -281,7 +277,19 @@ describe('entry-client utils', () => {
             expect(store.registerModule).not.toHaveBeenCalled();
 
             const from = { path: '/test1' };
-            const to = { path: '/test2' };
+            const to = {
+                path: '/test2',
+                matched: [{
+                    components: {
+                        test2: {
+                            vuex: {
+                                moduleName: 'test2',
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
             const { promise, resolve } = getResolvablePromise();
             beforeResolveFn(to, from, resolve);
             const nextParam = await promise;
@@ -303,17 +311,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    if (route.path === '/test2') {
-                        return [{
-                            vuex: {
-                                moduleName: ({ $route }) => `test2--${$route.params.slug}`,
-                                module: testModule,
-                            },
-                        }];
-                    }
-                    return [];
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -330,6 +327,16 @@ describe('entry-client utils', () => {
                 params: {
                     slug: 'foo',
                 },
+                matched: [{
+                    components: {
+                        test2: {
+                            vuex: {
+                                moduleName: ({ $route }) => `test2--${$route.params.slug}`,
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
             };
             const { promise, resolve } = getResolvablePromise();
             beforeResolveFn(to, from, resolve);
@@ -354,17 +361,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    if (route.path === '/test2') {
-                        return [{
-                            vuex: {
-                                moduleName: 'foo/bar/baz',
-                                module: testModule,
-                            },
-                        }];
-                    }
-                    return [];
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -376,7 +372,19 @@ describe('entry-client utils', () => {
             expect(store.registerModule).not.toHaveBeenCalled();
 
             const from = { path: '/test1' };
-            const to = { path: '/test2' };
+            const to = {
+                path: '/test2',
+                matched: [{
+                    components: {
+                        test2: {
+                            vuex: {
+                                moduleName: 'foo/bar/baz',
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
             const { promise, resolve } = getResolvablePromise();
             beforeResolveFn(to, from, resolve);
             const nextParam = await promise;
@@ -394,9 +402,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents() {
-                    throw new Error('Failed!');
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -408,12 +413,15 @@ describe('entry-client utils', () => {
             expect(store.registerModule).not.toHaveBeenCalled();
 
             const from = { path: '/test1' };
-            const to = { path: '/test2' };
+            const to = {
+                path: '/test2',
+                // No matched array, so will throw an error inside getMatchedComponents
+            };
             const { promise, resolve } = getResolvablePromise();
             beforeResolveFn(to, from, resolve);
             const nextParam = await promise;
             expect(store.registerModule).not.toHaveBeenCalled();
-            expect(nextParam).toEqual(new Error('Failed!'));
+            expect(nextParam).toEqual(expect.any(Error));
         });
 
         it('should deregister modules', async () => {
@@ -432,14 +440,6 @@ describe('entry-client utils', () => {
                 },
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
-                },
-                getMatchedComponents(route) {
-                    return [{
-                        vuex: {
-                            moduleName: route.path.replace('/', ''),
-                            module: testModule,
-                        },
-                    }];
                 },
             };
             const activeModules = [
@@ -463,50 +463,86 @@ describe('entry-client utils', () => {
             let ctx;
             let nextParam;
 
+            const fromRoute = {
+                path: '/a',
+                matched: [{
+                    components: {
+                        name: {
+                            vuex: {
+                                moduleName: ({ $route }) => $route.path.replace('/', ''),
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
+            const toRoute = {
+                path: '/b',
+                matched: [{
+                    components: {
+                        name: {
+                            vuex: {
+                                moduleName: ({ $route }) => $route.path.replace('/', ''),
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
+
             // a -> b
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             nextParam = await ctx.promise;
             expect(activeModules).toEqual([['a'], ['b']]);
             expect(nextParam).toBe(undefined);
-            afterEachFn({ path: '/b' }, { path: '/a' });
+            afterEachFn(toRoute, fromRoute);
             expect(activeModules).toEqual([['a'], ['b']]);
 
             // b -> c
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/c' }, { path: '/b' }, ctx.resolve);
+            fromRoute.path = '/b';
+            toRoute.path = '/c';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             nextParam = await ctx.promise;
             expect(activeModules).toEqual([['a'], ['b'], ['c']]);
             expect(nextParam).toBe(undefined);
-            afterEachFn({ path: '/c' }, { path: '/b' });
+            afterEachFn(toRoute, fromRoute);
             expect(activeModules).toEqual([['b'], ['c']]);
 
             // c -> d
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/d' }, { path: '/c' }, ctx.resolve);
+            fromRoute.path = '/c';
+            toRoute.path = '/d';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             nextParam = await ctx.promise;
             expect(activeModules).toEqual([['b'], ['c'], ['d']]);
             expect(nextParam).toBe(undefined);
-            afterEachFn({ path: '/d' }, { path: '/c' });
+            afterEachFn(toRoute, fromRoute);
             expect(activeModules).toEqual([['c'], ['d']]);
 
             // d -> c
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/c' }, { path: '/d' }, ctx.resolve);
+            fromRoute.path = '/d';
+            toRoute.path = '/c';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             nextParam = await ctx.promise;
             expect(activeModules).toEqual([['c'], ['d']]);
             expect(nextParam).toBe(undefined);
-            afterEachFn({ path: '/c' }, { path: '/d' });
+            afterEachFn(toRoute, fromRoute);
             expect(activeModules).toEqual([['c'], ['d']]);
 
             // d -> d?foo=1
             // Should short circuit due to shouldProcessRouteUpdate and not remove c
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/d', query: { foo: '1' } }, { path: '/d' }, ctx.resolve);
+            fromRoute.path = '/d';
+            toRoute.path = '/d';
+            toRoute.query = { foo: '1' };
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             nextParam = await ctx.promise;
             expect(activeModules).toEqual([['c'], ['d']]);
             expect(nextParam).toBe(undefined);
-            afterEachFn({ path: '/d', query: { foo: '1' } }, { path: '/d' });
+            afterEachFn(toRoute, fromRoute);
             expect(activeModules).toEqual([['c'], ['d']]);
         });
 
@@ -525,15 +561,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    return [{
-                        shouldProcessRouteUpdate,
-                        vuex: {
-                            moduleName: route.path.replace('/', ''),
-                            module: testModule,
-                        },
-                    }];
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -544,32 +571,75 @@ describe('entry-client utils', () => {
             let ctx;
 
             // Test Defaults
+            const fromRoute = {
+                path: '/a',
+                matched: [{
+                    components: {
+                        name: {
+                            vuex: {
+                                moduleName: ({ $route }) => $route.path.replace('/', ''),
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
+            const toRoute = {
+                path: '/b',
+                matched: [{
+                    components: {
+                        name: {
+                            shouldProcessRouteUpdate,
+                            vuex: {
+                                moduleName: ({ $route }) => $route.path.replace('/', ''),
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
 
             // /a -> /a - process due to name change
             // Not a real scenario but we want to ensure we always refetch when going between
             // routing table entries - path should full handle this in theory though
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/a', name: '1' }, { path: '/a', name: '2' }, ctx.resolve);
+            fromRoute.path = '/a';
+            fromRoute.name = '1';
+            toRoute.path = '/a';
+            toRoute.name = '2';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(1);
+            delete fromRoute.name;
+            delete toRoute.name;
 
             // /a -> /b - process due to path change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            fromRoute.path = '/a';
+            toRoute.path = '/b';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(2);
 
             // /b -> /b?foo=1 - do not process due to query change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', query: { foo: '1' } }, { path: '/b' }, ctx.resolve);
+            fromRoute.path = '/b';
+            toRoute.path = '/b';
+            toRoute.query = { foo: '1' };
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(2);
+            delete toRoute.query;
 
             // /b -> /b#foo - do not process due to hash change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', hash: '#foo' }, { path: '/b' }, ctx.resolve);
+            fromRoute.path = '/b';
+            toRoute.path = '/b';
+            toRoute.hash = '#foo';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(2);
+            delete toRoute.hash;
 
             // Test component specifications
             store.registerModule.mockReset();
@@ -581,21 +651,31 @@ describe('entry-client utils', () => {
 
             // /a -> /b - process due to path change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            fromRoute.path = '/a';
+            toRoute.path = '/b';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(1);
 
-            // /b -> /b?foo=1 - do not process due to query change
+            // /b -> /b?foo=1 - process due to query change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', query: { foo: '1' } }, { path: '/b' }, ctx.resolve);
+            fromRoute.path = '/b';
+            toRoute.path = '/b';
+            toRoute.query = { foo: '1' };
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(2);
+            delete toRoute.query;
 
-            // /b -> /b#foo - do not process due to hash change
+            // /b -> /b#foo - process due to hash change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', hash: '#foo' }, { path: '/b' }, ctx.resolve);
+            fromRoute.path = '/b';
+            toRoute.path = '/b';
+            toRoute.hash = '#foo';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(3);
+            delete toRoute.hash;
         });
 
         it('should support shouldProcessRouteUpdate function', async () => {
@@ -617,15 +697,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents(route) {
-                    return [{
-                        shouldProcessRouteUpdate,
-                        vuex: {
-                            moduleName: route.path.replace('/', ''),
-                            module: testModule,
-                        },
-                    }];
-                },
             };
             const store = {
                 hasModule: () => false,
@@ -635,29 +706,71 @@ describe('entry-client utils', () => {
 
             let ctx;
 
+            const fromRoute = {
+                path: '/a',
+                matched: [{
+                    components: {
+                        name: {
+                            vuex: {
+                                moduleName: ({ $route }) => $route.path.replace('/', ''),
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
+            const toRoute = {
+                path: '/b',
+                matched: [{
+                    components: {
+                        name: {
+                            shouldProcessRouteUpdate,
+                            vuex: {
+                                moduleName: ({ $route }) => $route.path.replace('/', ''),
+                                module: testModule,
+                            },
+                        },
+                    },
+                }],
+            };
+
             // /a -> /b - process due to path change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            fromRoute.path = '/a';
+            toRoute.path = '/b';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(1);
 
             // /b -> /b?foo=1 - process due to foo query change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', query: { foo: '1' } }, { path: '/b' }, ctx.resolve);
+            fromRoute.path = '/b';
+            toRoute.path = '/b';
+            toRoute.query = { foo: '1' };
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(2);
+            delete toRoute.query;
 
-            // /b -> /b?bar=1 - do not process due to foo query change
+            // /b -> /b?bar=1 - do not process due to bar query change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', query: { bar: '1' } }, { path: '/b' }, ctx.resolve);
+            fromRoute.path = '/b';
+            toRoute.path = '/b';
+            toRoute.query = { bar: '1' };
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(2);
+            delete toRoute.query;
 
             // /b -> /b#foo - do not process due to hash change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', hash: '#foo' }, { path: '/b' }, ctx.resolve);
+            fromRoute.path = '/b';
+            toRoute.path = '/b';
+            toRoute.hash = '#foo';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(store.registerModule.mock.calls.length).toBe(2);
+            delete toRoute.hash;
         });
     });
 
@@ -665,68 +778,89 @@ describe('entry-client utils', () => {
 
         it('should fetchData for matched components', async () => {
             const app = { name: 'App' };
-            const component = {
-                fetchData: jest.fn(),
-            };
             let beforeResolveFn;
             const router = {
                 beforeEach() {},
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents: jest.fn(() => [component]),
+            };
+            const fromRoute = {
+                path: '/a',
+                matched: [{
+                    components: {
+                        a: { fetchData: jest.fn() },
+                    },
+                }],
+            };
+            const toRoute = {
+                path: '/b',
+                matched: [{
+                    components: {
+                        b: { fetchData: jest.fn() },
+                    },
+                }],
             };
             const store = { state: {} };
             useFetchDataClient(app, router, store, logger);
             const ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
-            expect(router.getMatchedComponents).toHaveBeenCalledWith({ path: '/b' });
-            expect(component.fetchData).toHaveBeenCalledWith({
+            expect(fromRoute.matched[0].components.a.fetchData).not.toHaveBeenCalled();
+            expect(toRoute.matched[0].components.b.fetchData).toHaveBeenCalledWith({
                 ssrContext: null,
                 app,
                 router,
                 store,
-                route: { path: '/b' },
-                from: { path: '/a' },
+                route: toRoute,
+                from: fromRoute,
             });
         });
 
         it('should fetchData for matched nested components', async () => {
             const app = { name: 'App' };
-            const component1 = {
-                fetchData: jest.fn(),
-            };
-            const component2 = {
-                // No fetchData
-            };
-            const component3 = {
-                fetchData: jest.fn(),
-            };
             let beforeResolveFn;
             const router = {
                 beforeEach() {},
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents: jest.fn(() => [component1, component2, component3]),
             };
+            const fromRoute = {
+                path: '/a',
+            };
+            const toRoute = {
+                path: '/b',
+                matched: [{
+                    components: {
+                        b: { fetchData: jest.fn() },
+                        // No FetchData
+                        b1: {},
+                        b2: { fetchData: jest.fn() },
+                    },
+                }, {
+                    components: {
+                        b3: { fetchData: jest.fn() },
+                    },
+                }],
+            };
+
             const store = { state: {} };
             useFetchDataClient(app, router, store, logger);
             const ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
-            expect(router.getMatchedComponents).toHaveBeenCalledWith({ path: '/b' });
             const expectedArg = {
                 ssrContext: null,
                 app,
                 router,
                 store,
-                route: { path: '/b' },
-                from: { path: '/a' },
+                route: toRoute,
+                from: fromRoute,
             };
-            expect(component1.fetchData).toHaveBeenCalledWith(expectedArg);
-            expect(component3.fetchData).toHaveBeenCalledWith(expectedArg);
+            expect(toRoute.matched[0].components.b.fetchData).toHaveBeenCalledWith(expectedArg);
+            expect(toRoute.matched[0].components.b2.fetchData).toHaveBeenCalledWith(expectedArg);
+            expect(toRoute.matched[1].components.b3.fetchData).toHaveBeenCalledWith(expectedArg);
         });
 
         it('should call middlewares if specified', async () => {
@@ -740,7 +874,17 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents: jest.fn(() => [component]),
+            };
+            const fromRoute = {
+                path: '/a',
+            };
+            const toRoute = {
+                path: '/b',
+                matched: [{
+                    components: {
+                        b: component,
+                    },
+                }],
             };
             const store = { state: {} };
             const globalFetchData = jest.fn();
@@ -752,16 +896,15 @@ describe('entry-client utils', () => {
                 postMiddleware,
             });
             const ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
-            expect(router.getMatchedComponents).toHaveBeenCalledWith({ path: '/b' });
             const expectedArg = {
                 ssrContext: null,
                 app,
                 router,
                 store,
-                route: { path: '/b' },
-                from: { path: '/a' },
+                route: toRoute,
+                from: fromRoute,
             };
             expect(middleware).toHaveBeenCalledWith(expectedArg);
             expect(globalFetchData).toHaveBeenCalledWith(expectedArg);
@@ -780,7 +923,17 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents: jest.fn(() => [component]),
+            };
+            const fromRoute = {
+                path: '/a',
+            };
+            const toRoute = {
+                path: '/b',
+                matched: [{
+                    components: {
+                        b: component,
+                    },
+                }],
             };
             const store = { state: {} };
 
@@ -790,21 +943,21 @@ describe('entry-client utils', () => {
             component.fetchData.mockImplementation(() => Promise.reject('error'));
             useFetchDataClient(app, router, store, logger);
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             nextArg = await ctx.promise;
             expect(nextArg).toEqual(new Error('error'));
 
             component.fetchData.mockImplementation(() => Promise.reject(new Error('error')));
             useFetchDataClient(app, router, store, logger);
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             nextArg = await ctx.promise;
             expect(nextArg).toEqual(new Error('error'));
 
             component.fetchData.mockImplementation(() => Promise.reject({ error: 'oops' }));
             useFetchDataClient(app, router, store, logger);
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             nextArg = await ctx.promise;
             expect(nextArg).toEqual(new Error('{"error":"oops"}'));
         });
@@ -822,7 +975,17 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents: jest.fn(() => [component]),
+            };
+            const fromRoute = {
+                path: '/a',
+            };
+            const toRoute = {
+                path: '/b',
+                matched: [{
+                    components: {
+                        b: component,
+                    },
+                }],
             };
             const store = { state: {} };
             useFetchDataClient(app, router, store, logger);
@@ -831,19 +994,25 @@ describe('entry-client utils', () => {
 
             // /a -> /b - should run on path change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(component.fetchData.mock.calls.length).toBe(1);
 
             // /a -> /a?foo=1 - should not run on query change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/a', query: { foo: '1' } }, { path: '/a' }, ctx.resolve);
+            toRoute.path = '/a';
+            toRoute.query = { foo: '1' };
+            toRoute.hash = null;
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(component.fetchData.mock.calls.length).toBe(1);
 
             // /a -> /a#foo - should not run on hash change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/a', hash: '#foo' }, { path: '/a' }, ctx.resolve);
+            toRoute.path = '/a';
+            toRoute.query = null;
+            toRoute.hash = '#foo';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(component.fetchData.mock.calls.length).toBe(1);
 
@@ -857,29 +1026,41 @@ describe('entry-client utils', () => {
 
             // /a -> /b - process due to path change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            toRoute.path = '/b';
+            toRoute.query = null;
+            toRoute.hash = null;
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(component.fetchData.mock.calls.length).toBe(1);
 
-            // /b -> /b?foo=1 - do not process due to query change
+            // /a -> /a?foo=1 - do not process due to query change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', query: { foo: '1' } }, { path: '/b' }, ctx.resolve);
+            toRoute.path = '/a';
+            toRoute.query = { foo: '1' };
+            toRoute.hash = null;
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(component.fetchData.mock.calls.length).toBe(2);
 
-            // /b -> /b#foo - do not process due to hash change
+            // /a -> /a#foo - do not process due to hash change
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b', hash: '#foo' }, { path: '/b' }, ctx.resolve);
+            toRoute.path = '/a';
+            toRoute.query = null;
+            toRoute.hash = '#foo';
+            beforeResolveFn(toRoute, fromRoute, ctx.resolve);
             await ctx.promise;
             expect(component.fetchData.mock.calls.length).toBe(3);
         });
 
-        it('should initialize a client-side performance trace 2', async () => {
+        it('should initialize a client-side performance trace', async () => {
             const entries = initWindowPerformance();
             const app = { name: 'App' };
-            const component = {
-                fetchData: () => {},
-            };
+            // Must have matched components to trigger perfInit
+            const matched = [{
+                components: {
+                    a: {},
+                },
+            }];
             let beforeEachFn;
             let beforeResolveFn;
             const router = {
@@ -889,7 +1070,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents: () => [component],
             };
             const store = { state: {} };
 
@@ -898,13 +1078,21 @@ describe('entry-client utils', () => {
             let ctx;
 
             ctx = getResolvablePromise();
-            beforeEachFn({ name: 'b', path: '/b' }, { name: 'a', path: '/a' }, ctx.resolve);
+            beforeEachFn(
+                { name: 'b', path: '/b', matched },
+                { name: 'a', path: '/a', matched },
+                ctx.resolve,
+            );
             await ctx.promise;
             expect(entries).toEqual([
                 { entryType: 'mark', name: 'urbnperf|a->b|start' },
             ]);
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(
+                { path: '/b', matched },
+                { path: '/a', matched },
+                ctx.resolve,
+            );
             await ctx.promise;
             expect(entries).toEqual([
                 {
@@ -930,13 +1118,21 @@ describe('entry-client utils', () => {
 
             // Ensure prior marks get cleared on a new route
             ctx = getResolvablePromise();
-            beforeEachFn({ name: 'c', path: '/c' }, { name: 'b', path: '/b' }, ctx.resolve);
+            beforeEachFn(
+                { name: 'c', path: '/c', matched },
+                { name: 'b', path: '/b', matched },
+                ctx.resolve,
+            );
             await ctx.promise;
             expect(entries).toEqual([
                 { entryType: 'mark', name: 'urbnperf|b->c|start' },
             ]);
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(
+                { path: '/b', matched },
+                { path: '/a', matched },
+                ctx.resolve,
+            );
             await ctx.promise;
             expect(entries).toEqual([
                 {
@@ -963,8 +1159,8 @@ describe('entry-client utils', () => {
             // Ensure nothing changes for shouldProcessRouteUpdate short circuits
             ctx = getResolvablePromise();
             beforeEachFn(
-                { name: 'c', path: '/c', query: { foo: '1' } },
-                { name: 'c', path: '/c' },
+                { name: 'c', path: '/c', query: { foo: '1' }, matched },
+                { name: 'c', path: '/c', matched },
                 ctx.resolve,
             );
             await ctx.promise;
@@ -993,9 +1189,11 @@ describe('entry-client utils', () => {
 
         it('should fail gracefully when window.performance is not available', async () => {
             const app = { name: 'App' };
-            const component = {
-                fetchData: () => {},
-            };
+            const matched = [{
+                components: {
+                    a: { fetchData: () => {} },
+                },
+            }];
             let beforeEachFn;
             let beforeResolveFn;
             const router = {
@@ -1005,7 +1203,6 @@ describe('entry-client utils', () => {
                 beforeResolve(fn) {
                     beforeResolveFn = fn;
                 },
-                getMatchedComponents: () => [component],
             };
             const store = { state: {} };
 
@@ -1017,10 +1214,18 @@ describe('entry-client utils', () => {
             let ctx;
 
             ctx = getResolvablePromise();
-            beforeEachFn({ name: 'b', path: '/b' }, { name: 'a', path: '/a' }, ctx.resolve);
+            beforeEachFn(
+                { name: 'b', path: '/b', matched },
+                { name: 'a', path: '/a', matched },
+                ctx.resolve,
+            );
             await ctx.promise;
             ctx = getResolvablePromise();
-            beforeResolveFn({ path: '/b' }, { path: '/a' }, ctx.resolve);
+            beforeResolveFn(
+                { path: '/b', matched },
+                { path: '/a', matched },
+                ctx.resolve,
+            );
             await ctx.promise;
 
             window.performance = oldPerformance;
