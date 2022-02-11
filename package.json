@@ -1,8 +1,8 @@
 {
   "name": "vue-ssr-build",
-  "version": "8.0.0-beta.1",
+  "version": "8.0.0-beta.2",
   "description": "Vue.js SSR Build Helper",
-  "author": "matt@brophy.org",
+  "author": "URBN",
   "license": "MIT",
   "engines": {
     "node": ">=14.15.4",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/brophdawg11/vue-ssr-build.git"
+    "url": "git+https://github.com/urbn/vue-ssr-build.git"
   },
   "scripts": {
     "bump": "npm --no-git-tag-version version minor",
