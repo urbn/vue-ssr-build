@@ -197,7 +197,11 @@ module.exports = function initVueRenderer(app, configOpts) {
     // Non-local mode without HMR
     const template = fs.readFileSync(config.templatePath, 'utf-8');
     const bundle = require(path.resolve(config.serverBundle));
-    const clientManifest = require(path.resolve(config.clientManifest));
+    let clientManifest = require(path.resolve(config.clientManifest));
+
+    if (typeof config.preprocessClientManifest === 'function') {
+        clientManifest = config.preprocessClientManifest(clientManifest);
+    }
 
     renderers[config.name] = createRenderer(bundle, { template, clientManifest }, config);
     return function renderVueRoute(req, res) {

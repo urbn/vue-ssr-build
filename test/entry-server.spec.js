@@ -16,16 +16,14 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        matched: [{
-                            components: [{
-                                vuex: {
-                                    moduleName: 'test',
-                                    module: testModule,
-                                },
-                            }],
+                    matched: [{
+                        components: [{
+                            vuex: {
+                                moduleName: 'test',
+                                module: testModule,
+                            },
                         }],
-                    },
+                    }],
                 },
             };
             const store = {
@@ -41,15 +39,13 @@ describe('entry-server utils', () => {
         it('should ignore modules which do not specify a vuex key', () => {
             const router = {
                 currentRoute: {
-                    value: {
-                        matched: [{
-                            components: [{
-                                name: '1',
-                            }, {
-                                name: '1',
-                            }],
+                    matched: [{
+                        components: [{
+                            name: '1',
+                        }, {
+                            name: '1',
                         }],
-                    },
+                    }],
                 },
             };
             const store = {
@@ -76,23 +72,21 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        matched: [{
-                            components: [{
-                                vuex: {
-                                    moduleName: 'test1',
-                                    module: testModule1,
-                                },
-                            }, {
-                                // No vuex module on this component
-                            }, {
-                                vuex: {
-                                    moduleName: 'test2',
-                                    module: testModule2,
-                                },
-                            }],
+                    matched: [{
+                        components: [{
+                            vuex: {
+                                moduleName: 'test1',
+                                module: testModule1,
+                            },
+                        }, {
+                            // No vuex module on this component
+                        }, {
+                            vuex: {
+                                moduleName: 'test2',
+                                module: testModule2,
+                            },
                         }],
-                    },
+                    }],
                 },
             };
             const store = {
@@ -117,16 +111,14 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        matched: [{
-                            components: [{
-                                vuex: {
-                                    moduleName: 'test',
-                                    module: testModule,
-                                },
-                            }],
+                    matched: [{
+                        components: [{
+                            vuex: {
+                                moduleName: 'test',
+                                module: testModule,
+                            },
                         }],
-                    },
+                    }],
                 },
             };
             const store = {
@@ -153,16 +145,14 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        matched: [{
-                            components: [{
-                                vuex: {
-                                    moduleName: 'test',
-                                    module: testModule,
-                                },
-                            }],
+                    matched: [{
+                        components: [{
+                            vuex: {
+                                moduleName: 'test',
+                                module: testModule,
+                            },
                         }],
-                    },
+                    }],
                 },
             };
             const store = {
@@ -187,19 +177,17 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        params: {
-                            slug: 'foo',
-                        },
-                        matched: [{
-                            components: [{
-                                vuex: {
-                                    moduleName: ({ $route }) => `test-${$route.params.slug}`,
-                                    module: testModule,
-                                },
-                            }],
-                        }],
+                    params: {
+                        slug: 'foo',
                     },
+                    matched: [{
+                        components: [{
+                            vuex: {
+                                moduleName: ({ $route }) => `test-${$route.params.slug}`,
+                                module: testModule,
+                            },
+                        }],
+                    }],
                 },
             };
             const store = {
@@ -221,19 +209,17 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        params: {
-                            slug: 'foo',
-                        },
-                        matched: [{
-                            components: [{
-                                vuex: {
-                                    moduleName: 'foo/bar/baz',
-                                    module: testModule,
-                                },
-                            }],
-                        }],
+                    params: {
+                        slug: 'foo',
                     },
+                    matched: [{
+                        components: [{
+                            vuex: {
+                                moduleName: 'foo/bar/baz',
+                                module: testModule,
+                            },
+                        }],
+                    }],
                 },
             };
             const store = {
@@ -258,12 +244,10 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        path: '/',
-                        matched: [{
-                            components: [component],
-                        }],
-                    },
+                    path: '/',
+                    matched: [{
+                        components: [component],
+                    }],
                 },
             };
             const store = { state: {} };
@@ -273,7 +257,7 @@ describe('entry-server utils', () => {
                 app,
                 router,
                 store,
-                route: router.currentRoute.value,
+                route: router.currentRoute,
             });
         });
 
@@ -291,16 +275,14 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        path: '/',
-                        matched: [{
-                            components: [component1],
-                        }, {
-                            components: [component2],
-                        }, {
-                            components: [component3],
-                        }],
-                    },
+                    path: '/',
+                    matched: [{
+                        components: [component1],
+                    }, {
+                        components: [component2],
+                    }, {
+                        components: [component3],
+                    }],
                 },
             };
             const store = { state: {} };
@@ -310,7 +292,7 @@ describe('entry-server utils', () => {
                 app,
                 router,
                 store,
-                route: router.currentRoute.value,
+                route: router.currentRoute,
             };
             expect(component1.fetchData).toHaveBeenCalledWith(expectedArg);
             expect(component3.fetchData).toHaveBeenCalledWith(expectedArg);
@@ -324,12 +306,10 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        path: '/',
-                        matched: [{
-                            components: [component],
-                        }],
-                    },
+                    path: '/',
+                    matched: [{
+                        components: [component],
+                    }],
                 },
             };
             const store = { state: {} };
@@ -346,7 +326,7 @@ describe('entry-server utils', () => {
                 app,
                 router,
                 store,
-                route: router.currentRoute.value,
+                route: router.currentRoute,
             };
             expect(middleware).toHaveBeenCalledWith(expectedArg);
             expect(globalFetchData).toHaveBeenCalledWith(expectedArg);
@@ -362,12 +342,10 @@ describe('entry-server utils', () => {
             };
             const router = {
                 currentRoute: {
-                    value: {
-                        path: '/',
-                        matched: [{
-                            components: [component],
-                        }],
-                    },
+                    path: '/',
+                    matched: [{
+                        components: [component],
+                    }],
                 },
             };
             const store = { state: {} };
