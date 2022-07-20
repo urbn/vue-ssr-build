@@ -1,7 +1,6 @@
 /* eslint-disable no-console, global-require, import/no-unresolved, import/no-dynamic-require */
 
-const fs = require('fs');
-const fsPromises = require('fs/promises');
+const fs = require('fs/promises');
 const path = require('path');
 const LRU = require('lru-cache');
 const { createBundleRenderer } = require('vue-server-renderer');
@@ -140,7 +139,7 @@ function render(config, clientManifest, req, res) {
     });
 }
 
-module.exports = async function initVueRenderer(app, configOpts) {
+module.exports = function initVueRenderer(app, configOpts) {
     const config = {
         ...defaults,
         ...configOpts,
@@ -175,7 +174,8 @@ module.exports = async function initVueRenderer(app, configOpts) {
                             config.logger.log('Re-loading non-default template');
                             const newOptions = {
                                 ...options,
-                                template: fs.readFileSync(configs[k].templatePath, 'utf-8'),
+                                template: fs.readFile(
+                                    configs[k].templatePath, { encoding: 'utf-8' }),
                             };
                             renderers[k] = createRenderer(bundle, newOptions, configs[k]);
                         }
@@ -196,12 +196,11 @@ module.exports = async function initVueRenderer(app, configOpts) {
     }
 
     // Non-local mode without HMR
-    const templatePromise = fsPromises.readFile(config.templatePath, { encoding: 'utf-8' });
     const bundle = require(path.resolve(config.serverBundle));
     const clientManifest = require(path.resolve(config.clientManifest));
 
     renderers[config.name] = createRenderer(bundle, {
-        template: await templatePromise,
+        template: fs.readFile(config.templatePath, { encoding: 'utf-8' }),
         clientManifest,
     }, config);
     return function renderVueRoute(req, res) {
