@@ -40,6 +40,7 @@ export async function useFetchDataServer(ssrContext, app, router, store, opts) {
     const route = router.currentRoute;
     const fetchDataArgs = getFetchDataArgs(ssrContext, app, router, store, route);
     const components = router.getMatchedComponents(route);
+    console.log(`Matched components for ${JSON.stringify(route)}: ${JSON.stringify(components)}`);
     if (opts && opts.middleware) {
         await opts.middleware(fetchDataArgs);
     }
