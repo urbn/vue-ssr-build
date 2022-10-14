@@ -1,6 +1,6 @@
 {
   "name": "vue-ssr-build",
-  "version": "8.0.0-beta.2",
+  "version": "8.0.1",
   "description": "Vue.js SSR Build Helper",
   "author": "skennedy@urbn.com",
   "license": "MIT",
