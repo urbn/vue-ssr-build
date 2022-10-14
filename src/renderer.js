@@ -43,6 +43,7 @@ const defaults = {
 const configs = {};
 const caches = {};
 const renderers = {};
+const cachedTemplates = {};
 
 let readyPromise;
 
@@ -195,7 +196,10 @@ module.exports = function initVueRenderer(app, configOpts) {
     }
 
     // Non-local mode without HMR
-    const template = fs.readFileSync(config.templatePath, 'utf-8');
+    if (!cachedTemplates[config.templatePath]) {
+        cachedTemplates[config.templatePath] = fs.readFileSync(config.templatePath, 'utf-8');
+    }
+    const template = cachedTemplates[config.templatePath];
     const bundle = require(path.resolve(config.serverBundle));
     const clientManifest = require(path.resolve(config.clientManifest));
 
