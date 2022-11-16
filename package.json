@@ -30,7 +30,7 @@
     "webpack-hot-server-middleware": "0.6.1"
   },
   "peerDependencies": {
-    "vue-server-renderer": "2.7.12"
+    "vue-server-renderer": "2.7.14"
   },
   "devDependencies": {
     "@babel/eslint-parser": "7.13.4",
