@@ -84,13 +84,23 @@ function createRenderer(bundle, options, config) {
     }, config.rendererOpts));
 }
 
+function addNonceToScriptTags(html, nonce) {
+    if (!nonce || !html) {
+        return html;
+    }
+    return html
+      .replace(/<script/g, `<script nonce="${nonce}"`)
+      .replace(/as="script">/g, `nonce="${nonce}" as="sxcript">`);
+}
+
 function renderToString(config, context, res, cb) {
     renderers[config.name].renderToString(context,
         (err, html) => {
+            const nonceIncludedHTML = addNonceToScriptTags(html, res.locals.cspNonce);
             if (err) {
                 config.errorHandler(err, res, cb);
             } else {
-                res.send(html);
+                res.send(nonceIncludedHTML);
                 cb();
             }
         },
