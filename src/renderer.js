@@ -89,8 +89,8 @@ function addNonceToScriptTags(html, nonce) {
         return html;
     }
     return html
-      .replace(/<script/g, `<script nonce="${nonce}"`)
-      .replace(/as="script">/g, `nonce="${nonce}" as="sxcript">`);
+        .replace(/<script/g, `<script nonce="${nonce}"`)
+        .replace(/as="script">/g, `nonce="${nonce}" as="script">`);
 }
 
 function renderToString(config, context, res, cb) {
