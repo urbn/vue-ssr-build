@@ -84,13 +84,23 @@ function createRenderer(bundle, options, config) {
     }, config.rendererOpts));
 }
 
+function addNonceToScriptTags(html, nonce) {
+    if (!nonce || !html) {
+        return html;
+    }
+    return html
+        .replace(/<script/g, `<script nonce="${nonce}"`)
+        .replace(/as="script">/g, `nonce="${nonce}" as="script">`);
+}
+
 function renderToString(config, context, res, cb) {
     renderers[config.name].renderToString(context,
         (err, html) => {
+            const nonceIncludedHTML = addNonceToScriptTags(html, res.locals.cspNonce);
             if (err) {
                 config.errorHandler(err, res, cb);
             } else {
-                res.send(html);
+                res.send(nonceIncludedHTML);
                 cb();
             }
         },
@@ -122,11 +132,6 @@ function render(config, clientManifest, req, res) {
     };
 
     res.setHeader('Content-Type', 'text/html');
-
-    if (res.locals.cspNonce) {
-        // eslint-disable-next-line no-param-reassign
-        config.nonce = res.locals.cspNonce;
-    }
 
     // Render the appropriate Vue components into the renderer template
     // using the server render logic in entry-server.js
