@@ -145,7 +145,12 @@ export function useRouteVuexModulesClient(app, router, store, logger) {
 
             next();
         } catch (e) {
-            logger.error('Caught error during beforeResolve', e);
+            if (e instanceof DOMException) {
+                logger.error(`DOMException ${e.name} occurred during client-side routing 
+                              from ${from.fullPath} to ${to.fullPath}`, e);
+            } else {
+                logger.error('Caught error during beforeResolve', e);
+            }
             // Prevent routing
             next(e);
         }

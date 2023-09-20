@@ -394,6 +394,52 @@ describe('entry-client utils', () => {
             expect(nextParam).toBe(undefined);
         });
 
+        it('should cancel routing on DOMExceptions', () => {
+            let beforeResolveFn;
+            const app = { name: 'App' };
+            const router = {
+                afterEach() {},
+                beforeResolve(fn) {
+                    beforeResolveFn = fn;
+                },
+            };
+            const store = {
+                hasModule: () => false,
+                registerModule: jest.fn(),
+            };
+            useRouteVuexModulesClient(app, router, store, logger);
+
+            // No calls yet - no routing lifecycles processed
+            expect(store.registerModule).not.toHaveBeenCalled();
+
+            const from = { fullPath: '/test1', path: '/test1' };
+            const to = {
+                path: '/test2',
+                fullPath: '/test2',
+                matched: [{
+                    components: {
+                        test2: {
+                            template: '<div></div>',
+                        },
+                    },
+                }],
+            };
+            const nextParam = jest.fn().mockImplementation((err) => {
+                if (!err) {
+                    throw new DOMException('test', 'HierarchyRequestError');
+                } else {
+                    throw err;
+                }
+            });
+
+            expect(() => {
+                beforeResolveFn(to, from, nextParam);
+            }).toThrow(DOMException);
+
+            expect(store.registerModule).not.toHaveBeenCalled();
+            expect(nextParam).toHaveBeenCalledWith(expect.any(DOMException));
+        });
+
         it('should cancel routing if something goes wrong', async () => {
             let beforeResolveFn;
             const app = { name: 'App' };
