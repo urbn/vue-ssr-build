@@ -119,6 +119,7 @@ function render(config, clientManifest, req, res) {
         url: req.url,
         clientManifest,
         initialState: null,
+        initialPiniaState: null,
     };
 
     res.setHeader('Content-Type', 'text/html');
