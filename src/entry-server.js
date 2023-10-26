@@ -20,11 +20,11 @@ import {
  * @returns {undefined}     No return value
  */
 export function useRouteVuexModulesServer(router, store, logger) {
-    getMatchedComponents(router.currentRoute.value)
+    getMatchedComponents(router.currentRoute)
         .filter(c => 'vuex' in c)
         .flatMap(c => c.vuex)
         .forEach((vuexModuleDef) => {
-            const name = getModuleName(vuexModuleDef, router.currentRoute.value);
+            const name = getModuleName(vuexModuleDef, router.currentRoute);
             safelyRegisterModule(store, name, vuexModuleDef.module, logger);
         });
 }
@@ -42,7 +42,7 @@ export function useRouteVuexModulesServer(router, store, logger) {
  * @returns {undefined}         No return value
  */
 export async function useFetchDataServer(ssrContext, app, router, store, opts) {
-    const route = router.currentRoute.value;
+    const route = router.currentRoute;
     const fetchDataArgs = getFetchDataArgs(ssrContext, app, router, store, route);
     const components = getMatchedComponents(route);
     if (opts && opts.middleware) {
