@@ -52,30 +52,30 @@ function createRenderer(bundle, options, config) {
             `Recreating the "${config.name}" Vue SSR BundleRenderer, clearing`,
             'the component cache and re-creating',
         );
-        caches[config.name].reset();
+        caches[config.name].clear();
         caches[config.name] = null;
     }
 
     const prettySize = Math.round(config.componentCacheMaxSize / 1024);
     const prettyAge = Math.round(config.componentCacheMaxAge / 1000);
-    config.logger.debug(`Creating component cache: maxSize ${prettySize}Kb, maxAge ${prettyAge}s`);
+    config.logger.debug(`Creating component cache: maxSize ${prettySize}Kb, ttl ${prettyAge}s`);
     caches[config.name] = new LRU({
-        length(n, key) {
+        sizeCalculation(value, key) {
             // Vue components come in as an object with an html key containing
             // the SSR output
             const valid = (
-                n != null &&
-                n.html != null &&
-                typeof n.html.length === 'number'
+                value != null &&
+                value.html != null &&
+                typeof value.html.length === 'number'
             );
-            const length = valid ? n.html.length : 1;
+            const length = valid ? value.html.length : 1;
             if (config.componentCacheDebug) {
                 config.logger.debug(`Adding component cache entry: key=${key}, length=${length}`);
             }
             return length;
         },
-        max: config.componentCacheMaxSize,
-        maxAge: config.componentCacheMaxAge,
+        maxSize: config.componentCacheMaxSize,
+        ttl: config.componentCacheMaxAge,
     });
 
     return createBundleRenderer(bundle, Object.assign(options, {
