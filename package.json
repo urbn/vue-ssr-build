@@ -22,7 +22,7 @@
     "chokidar": "3.5.2",
     "fstream": "1.0.12",
     "lodash": "4.17.21",
-    "lru-cache": "6.0.0",
+    "lru-cache": "10.0.1",
     "memory-fs": "0.5.0",
     "tar": "4.4.8",
     "vue-server-renderer": "2.7.15",
