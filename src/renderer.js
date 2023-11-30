@@ -93,31 +93,28 @@ function addNonceToScriptTags(html, nonce) {
         .replace(/as="script">/g, `nonce="${nonce}" as="script">`);
 }
 
-function renderToString(config, context, res, cb) {
-    renderers[config.name].renderToString(context,
-        (err, html) => {
+async function renderToString(config, context, res) {
+    return renderers[config.name].renderToString(context)
+        .then((html) => {
             const nonceIncludedHTML = addNonceToScriptTags(html, res.locals.cspNonce);
-            if (err) {
-                config.errorHandler(err, res, cb);
-            } else {
-                res.send(nonceIncludedHTML);
-                cb();
-            }
-        },
-        e => config.errorHandler(e, res, cb));
+            res.send(nonceIncludedHTML);
+        })
+        .catch(err => config.errorHandler(err, res));
 }
 
-function renderToStream(config, context, res, cb) {
+async function renderToStream(config, context, res) {
     const stream = renderers[config.name].renderToStream(context);
-    stream.on('data', data => res.write(data.toString()));
-    stream.on('end', () => {
-        res.end();
-        cb();
+    return new Promise((resolve, reject) => {
+        stream.on('data', data => res.write(data.toString()));
+        stream.on('end', () => {
+            res.end();
+            resolve();
+        });
+        stream.on('error', err => reject(config.errorHandler(err, res)));
     });
-    stream.on('error', err => config.errorHandler(err, res, cb));
 }
 
-function render(config, clientManifest, req, res) {
+async function render(config, clientManifest, req, res) {
     const s = Date.now();
 
     config.logger.log('\n\nVue request started', new Date().toISOString());
@@ -138,15 +135,14 @@ function render(config, clientManifest, req, res) {
     const renderFn = config.stream ? renderToStream : renderToString;
 
     config.logger.log(`Rendering from ${config.name} renderer!`);
-    renderFn(config, context, res, () => {
-        if (config.componentCacheDebug) {
-            config.logger.log('Component cache stats:');
-            config.logger.log('  length:', caches[config.name].length);
-            config.logger.log('  keys:', caches[config.name].keys().join(','));
-        }
-        config.logger.log('Vue request ended', new Date().toISOString());
-        config.logger.log(`SSR request took: ${Date.now() - s}ms`);
-    });
+    await renderFn(config, context, res);
+    if (config.componentCacheDebug) {
+        config.logger.log('Component cache stats:');
+        config.logger.log('  length:', caches[config.name].length);
+        config.logger.log('  keys:', caches[config.name].keys().join(','));
+    }
+    config.logger.log('Vue request ended', new Date().toISOString());
+    config.logger.log(`SSR request took: ${Date.now() - s}ms`);
 }
 
 module.exports = function initVueRenderer(app, configOpts) {
