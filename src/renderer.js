@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const LRU = require('lru-cache');
+const { LRUCache } = require('lru-cache');
 const { createBundleRenderer } = require('vue-server-renderer');
 
 const errorHandler = (err, res, cb) => {
@@ -59,7 +59,7 @@ function createRenderer(bundle, options, config) {
     const prettySize = Math.round(config.componentCacheMaxSize / 1024);
     const prettyAge = Math.round(config.componentCacheMaxAge / 1000);
     config.logger.debug(`Creating component cache: maxSize ${prettySize}Kb, ttl ${prettyAge}s`);
-    caches[config.name] = new LRU({
+    caches[config.name] = new LRUCache({
         sizeCalculation(value, key) {
             // Vue components come in as an object with an html key containing
             // the SSR output
